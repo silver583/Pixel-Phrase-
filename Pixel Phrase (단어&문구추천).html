@@ -1,0 +1,2075 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PixelPhrase — AI Word & Phrase Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FBF9F6;
+    --surface: #FFFFFF;
+    --surface2: #F5F2EE;
+    --primary: #FF6B9D;
+    --primary-light: #FFE4EE;
+    --primary-dark: #D94F82;
+    --accent: #6C63FF;
+    --accent-light: #EAE8FF;
+    --mint: #3ECFAA;
+    --mint-light: #E1F8F3;
+    --amber: #FFB347;
+    --amber-light: #FFF3E0;
+    --text: #2D2B3A;
+    --text2: #6B6881;
+    --text3: #A09DC0;
+    --border: #E8E4F0;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 4px 24px rgba(108,99,255,0.08);
+    --shadow-hover: 0 8px 32px rgba(108,99,255,0.16);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(255,107,157,0.06) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(108,99,255,0.06) 0%, transparent 50%);
+  }
+  header {
+    padding: 22px 48px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo {
+    font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 22px;
+    color: var(--accent); display: flex; align-items: center; gap: 10px;
+  }
+  .logo-icon {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 17px;
+  }
+  .logo span { color: var(--primary); }
+  .header-tag {
+    font-size: 12px; color: var(--text3); background: var(--surface2);
+    padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border);
+  }
+  .my-btn {
+    padding: 8px 18px; border-radius: 30px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white; border: none; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: 'Nunito', sans-serif;
+    box-shadow: 0 4px 16px rgba(108,99,255,0.25);
+    transition: all 0.2s;
+  }
+  .my-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(108,99,255,0.35); }
+  
+  /* My 사이드패널 */
+  .my-panel {
+    position: fixed; top: 0; right: -420px; width: 400px; height: 100vh;
+    background: white; box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+    z-index: 200; transition: right 0.3s ease; overflow-y: auto;
+    padding: 24px;
+  }
+  .my-panel.open { right: 0; }
+  .my-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid var(--border);
+  }
+  .my-panel-header h2 {
+    font-family: 'Quicksand', sans-serif; font-size: 20px; font-weight: 700; color: var(--text);
+  }
+  .close-btn {
+    background: none; border: none; font-size: 24px; color: var(--text3);
+    cursor: pointer; padding: 4px 8px; transition: color 0.2s;
+  }
+  .close-btn:hover { color: var(--text); }
+  .my-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4); z-index: 199; display: none;
+  }
+  .my-overlay.show { display: block; }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 36px 32px 80px; }
+  .hero { text-align: center; margin-bottom: 36px; animation: fadeUp 0.6s ease; }
+  .hero h1 {
+    font-size: 29px; font-weight: 800; color: var(--text);
+    margin-bottom: 12px; line-height: 1.45;
+  }
+  .hero h1 em { font-style: normal; color: var(--primary); }
+  .hero h1 strong { font-style: normal; color: var(--accent); font-weight: 800; }
+  .hero p { color: var(--text2); font-size: 14px; font-weight: 500; line-height: 1.8; }
+  .card {
+    background: var(--surface); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 26px 30px;
+    margin-bottom: 18px; box-shadow: var(--shadow);
+    transition: box-shadow 0.2s; animation: fadeUp 0.5s ease;
+  }
+  .card:hover { box-shadow: var(--shadow-hover); }
+  .card-title {
+    font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 13px;
+    color: var(--text3); text-transform: uppercase; letter-spacing: 1.2px;
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .badge-required {
+    font-size: 11px; background: var(--primary-light); color: var(--primary-dark);
+    padding: 2px 8px; border-radius: 20px; text-transform: none;
+    letter-spacing: 0; font-weight: 700;
+  }
+  .badge-optional {
+    font-size: 11px; background: var(--surface2); color: var(--text3);
+    padding: 2px 8px; border-radius: 20px; text-transform: none;
+    letter-spacing: 0; font-weight: 700; border: 1px solid var(--border);
+  }
+
+  /* Language */
+  .lang-primary { display: flex; gap: 8px; flex-wrap: wrap; }
+  .lang-btn {
+    padding: 7px 14px; border-radius: 30px; border: 1.5px solid var(--border);
+    background: white; color: var(--text2); font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; font-family: 'Nunito', sans-serif;
+    display: flex; flex-direction: column; align-items: center; gap: 1px; line-height: 1.3;
+  }
+  .lang-native { font-size: 12px; }
+  .lang-kr { font-size: 10px; color: var(--text3); }
+  .lang-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .lang-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .lang-btn.active .lang-kr { color: rgba(255,255,255,0.7); }
+  .lang-more-wrap { position: relative; display: inline-flex; align-items: center; }
+  .lang-more-btn {
+    padding: 7px 14px; border-radius: 30px; border: 1.5px dashed var(--border);
+    background: var(--surface2); color: var(--text2); font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: 'Nunito', sans-serif;
+  }
+  .lang-dropdown {
+    display: none; position: absolute; top: calc(100% + 6px); left: 0;
+    background: white; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-hover); z-index: 50; min-width: 210px; padding: 6px;
+    max-height: 260px; overflow-y: auto;
+  }
+  .lang-dropdown.open { display: block; }
+  .lang-option {
+    padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 13px;
+    font-weight: 600; color: var(--text); transition: background 0.15s;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .lang-option-kr { font-size: 11px; color: var(--text3); }
+  .lang-option:hover { background: var(--primary-light); color: var(--primary-dark); }
+  .lang-dropdown::-webkit-scrollbar { width: 4px; }
+  .lang-dropdown::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* Upload */
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 36px 28px; text-align: center; cursor: pointer;
+    transition: all 0.25s; background: var(--surface2); position: relative; overflow: hidden;
+  }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--primary); background: var(--primary-light); }
+  .upload-zone.has-image { padding: 0; border: 2px solid var(--border); }
+  .upload-icon {
+    width: 56px; height: 56px; background: white; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px; box-shadow: 0 4px 16px rgba(108,99,255,0.12); font-size: 26px;
+  }
+  .upload-zone h3 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .upload-zone p { font-size: 13px; color: var(--text2); margin-bottom: 14px; }
+  .upload-methods { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .method-badge { font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 600; border: 1px solid; }
+  .method-badge.upload { background: var(--accent-light); color: var(--accent); border-color: var(--accent-light); }
+  .method-badge.drag { background: var(--mint-light); color: #1a8a6e; border-color: var(--mint-light); }
+  .method-badge.paste { background: var(--amber-light); color: #b36b00; border-color: var(--amber-light); }
+  #uploadInput { display: none; }
+  #previewImg { width: 100%; max-height: 300px; object-fit: contain; border-radius: 14px; display: none; }
+  .image-overlay { position: absolute; top: 10px; right: 10px; display: none; gap: 6px; }
+  .overlay-btn {
+    background: rgba(0,0,0,0.55); color: white; border: none; border-radius: 8px;
+    padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer;
+    font-family: 'Nunito', sans-serif; transition: background 0.2s;
+  }
+  .overlay-btn:hover { background: rgba(0,0,0,0.8); }
+
+  /* Form */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-full { grid-column: 1 / -1; }
+  .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text2); margin-bottom: 7px; }
+  .form-control {
+    width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm); font-size: 14px; font-family: 'Nunito', sans-serif;
+    color: var(--text); background: white; transition: border-color 0.2s; outline: none;
+  }
+  .form-control:focus { border-color: var(--accent); }
+  select.form-control { cursor: pointer; }
+  .type-toggle { display: flex; gap: 8px; }
+  .type-btn {
+    flex: 1; padding: 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
+    background: white; color: var(--text2); font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; font-family: 'Nunito', sans-serif; text-align: center;
+  }
+  .type-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* 성별 버튼 */
+  .gender-toggle { display: flex; gap: 8px; }
+  .gender-btn {
+    flex: 1; padding: 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
+    background: white; color: var(--text2); font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; font-family: 'Nunito', sans-serif; text-align: center;
+  }
+  .gender-btn.active { background: var(--mint); color: white; border-color: var(--mint); }
+
+  /* 범위 슬라이더 */
+  .range-slider-wrap { display: flex; align-items: center; gap: 12px; }
+  .range-slider {
+    flex: 1; height: 6px; background: var(--border); border-radius: 3px;
+    appearance: none; -webkit-appearance: none; cursor: pointer; outline: none;
+  }
+  .range-slider::-webkit-slider-thumb {
+    appearance: none; -webkit-appearance: none;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 2px 6px rgba(108,99,255,0.4);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .range-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15); box-shadow: 0 4px 12px rgba(108,99,255,0.6);
+  }
+  .range-slider::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); border: none; box-shadow: 0 2px 6px rgba(108,99,255,0.4);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .range-slider::-moz-range-thumb:hover {
+    transform: scale(1.15); box-shadow: 0 4px 12px rgba(108,99,255,0.6);
+  }
+  .range-display {
+    min-width: 90px; padding: 6px 12px; background: var(--accent-light); color: var(--accent);
+    border-radius: 8px; font-size: 13px; font-weight: 700; text-align: center;
+    border: 1px solid var(--accent-light);
+  }
+
+  /* Keywords */
+  .keywords-grid { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+  .keyword-chip {
+    padding: 6px 13px; border-radius: 20px; border: 1.5px solid var(--border);
+    background: white; color: var(--text2); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.18s; user-select: none; font-family: 'Nunito', sans-serif;
+  }
+  .keyword-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .keyword-chip.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .keyword-chip.girl.active { background: var(--primary); border-color: var(--primary); }
+  .keyword-chip.custom { border-style: dashed; border-color: var(--mint); color: #1a8a6e; }
+  .keyword-chip.custom.active { background: var(--mint); color: white; border-color: var(--mint); }
+  .keyword-add-wrap { display: flex; gap: 8px; margin-top: 10px; }
+  .keyword-add-input {
+    flex: 1; padding: 8px 12px; border: 1.5px dashed var(--border); border-radius: var(--radius-sm);
+    font-size: 13px; font-family: 'Nunito', sans-serif; outline: none;
+    background: white; color: var(--text); transition: border-color 0.2s;
+  }
+  .keyword-add-input:focus { border-color: var(--accent); }
+  .keyword-add-btn {
+    padding: 8px 14px; background: var(--accent-light); color: var(--accent); border: none;
+    border-radius: var(--radius-sm); font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: 'Nunito', sans-serif; transition: all 0.2s; white-space: nowrap;
+  }
+  .keyword-add-btn:hover { background: var(--accent); color: white; }
+  .shared-note-kw {
+    font-size: 11px; color: var(--text3); margin-top: 8px;
+    font-weight: 600; display: flex; align-items: center; gap: 4px;
+  }
+
+  /* 톤 강도 슬라이더 (5단계) */
+  .tone-sliders { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .tone-control {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    background: var(--surface2); border-radius: var(--radius-sm);
+  }
+  .tone-label {
+    font-size: 13px; font-weight: 700; color: var(--text);
+    min-width: 90px; padding: 4px 10px; background: white;
+    border-radius: 8px; border: 1px solid var(--border);
+  }
+  .tone-slider {
+    flex: 1; height: 6px; background: linear-gradient(to right, #E8E4F0 0%, #B8B4F0 25%, var(--accent) 50%, #FF9EC7 75%, var(--primary) 100%);
+    border-radius: 3px; appearance: none; -webkit-appearance: none; cursor: pointer; outline: none;
+  }
+  .tone-slider::-webkit-slider-thumb {
+    appearance: none; -webkit-appearance: none;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 2px 6px rgba(108,99,255,0.4);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .tone-slider::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); border: none; box-shadow: 0 2px 6px rgba(108,99,255,0.4);
+    cursor: pointer;
+  }
+  .tone-display {
+    min-width: 50px; font-size: 12px; font-weight: 700;
+    color: var(--accent); text-align: center;
+  }
+
+  /* Context tabs */
+  .section-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .stab {
+    padding: 6px 13px; border-radius: 20px; background: var(--surface2);
+    border: 1.5px solid transparent; color: var(--text2); font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all 0.18s; font-family: 'Nunito', sans-serif;
+  }
+  .stab.active { background: var(--amber-light); color: #b36b00; border-color: var(--amber); }
+  .pill-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .pill {
+    padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 700;
+    border: 1.5px solid var(--border); background: white; cursor: pointer;
+    transition: all 0.18s; font-family: 'Nunito', sans-serif; color: var(--text2);
+  }
+  .pill:hover { transform: translateY(-1px); }
+  .pill.season-spring.active { background: #FFF0F5; color: #D94F82; border-color: #F8B4CD; }
+  .pill.season-summer.active { background: #FFF3E0; color: #C56B00; border-color: var(--amber); }
+  .pill.season-fall.active { background: #FFF8EE; color: #A0522D; border-color: #E8A87C; }
+  .pill.season-winter.active { background: var(--accent-light); color: var(--accent); border-color: #B8B4F0; }
+  .pill.event.active { background: var(--primary-light); color: var(--primary-dark); border-color: var(--primary); }
+  .pill.situation.active { background: var(--mint-light); color: #0F8060; border-color: var(--mint); }
+  .pill.emotion.active { background: var(--amber-light); color: #8B5500; border-color: var(--amber); }
+  .pill.custom-pill { border-style: dashed; }
+  .pill.custom-pill.event.active { background: var(--primary-light); color: var(--primary-dark); border-color: var(--primary); }
+  .pill.custom-pill.situation.active { background: var(--mint-light); color: #0F8060; border-color: var(--mint); }
+  .pill.custom-pill.emotion.active { background: var(--amber-light); color: #8B5500; border-color: var(--amber); }
+
+  .section-label {
+    font-size: 11px; font-weight: 800; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 6px;
+  }
+  .pill-add-row { display: flex; gap: 8px; margin-top: 10px; }
+  .pill-add-input {
+    flex: 1; padding: 7px 12px; border: 1.5px dashed var(--border); border-radius: 30px;
+    font-size: 13px; font-family: 'Nunito', sans-serif; outline: none;
+    background: white; color: var(--text); transition: border-color 0.2s;
+  }
+  .pill-add-input:focus { border-color: var(--accent); }
+  .pill-add-btn {
+    padding: 7px 14px; background: var(--accent-light); color: var(--accent); border: none;
+    border-radius: 30px; font-size: 13px; font-weight: 700; cursor: pointer;
+    font-family: 'Nunito', sans-serif; transition: all 0.2s; white-space: nowrap;
+  }
+  .pill-add-btn:hover { background: var(--accent); color: white; }
+  .shared-note {
+    font-size: 11px; color: var(--text3); margin-top: 7px;
+    font-weight: 600; display: flex; align-items: center; gap: 4px;
+  }
+
+  /* Must inputs */
+  .must-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .char-hint { font-size: 11px; color: var(--text3); margin-top: 4px; font-weight: 600; }
+
+  /* 저장 단어 & 히스토리 (My 패널 내부) */
+  .feature-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .feature-tab {
+    padding: 6px 13px; border-radius: 20px; background: var(--surface2);
+    border: 1.5px solid transparent; color: var(--text2); font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all 0.18s; font-family: 'Nunito', sans-serif;
+  }
+  .feature-tab.active { background: var(--mint-light); color: #0F8060; border-color: var(--mint); }
+  .feature-section { display: none; }
+  .feature-section.active { display: block; }
+  .feature-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .feature-item {
+    padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 700;
+    border: 1.5px dashed var(--border); background: white; cursor: pointer;
+    transition: all 0.18s; font-family: 'Nunito', sans-serif; color: var(--text2);
+  }
+  .feature-item:hover { transform: translateY(-1px); }
+  .feature-item.active { background: var(--mint-light); color: var(--mint); border-color: var(--mint); }
+
+  /* 즐겨찾기 리스트 */
+  .favorite-list { display: flex; flex-direction: column; gap: 8px; }
+  .favorite-item {
+    background: var(--amber-light); border: 1.5px solid var(--amber);
+    border-radius: var(--radius-sm); padding: 10px 14px; position: relative;
+  }
+  .favorite-item-text {
+    font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px;
+    padding-right: 30px;
+  }
+  .favorite-item-kr {
+    font-size: 12px; color: var(--text2);
+  }
+  .favorite-remove {
+    position: absolute; top: 8px; right: 8px;
+    background: white; border: 1.5px solid var(--amber);
+    border-radius: 50%; width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 14px; font-weight: 700;
+    color: var(--text); transition: all 0.2s;
+  }
+  .favorite-remove:hover { background: #d9534f; color: white; border-color: #d9534f; }
+
+
+  /* Generate */
+  .generate-wrap { text-align: center; padding: 10px 0 22px; }
+  .generate-btn {
+    padding: 15px 52px; border-radius: 50px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white; border: none; font-size: 16px; font-weight: 800;
+    cursor: pointer; font-family: 'Quicksand', sans-serif; transition: all 0.25s;
+    box-shadow: 0 8px 32px rgba(255,107,157,0.32); letter-spacing: 0.3px;
+  }
+  .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(255,107,157,0.42); }
+  .generate-btn:active { transform: scale(0.98); }
+  .generate-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  /* Results */
+  .results-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px; flex-wrap: wrap; gap: 10px;
+  }
+  .results-header h2 { font-family: 'Quicksand', sans-serif; font-size: 21px; font-weight: 700; color: var(--text); }
+  .lang-switch-bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .lang-switch-bar span { font-size: 12px; color: var(--text3); font-weight: 700; margin-right: 2px; }
+  .lsw-btn {
+    padding: 4px 11px; border-radius: 20px; border: 1.5px solid var(--border);
+    background: white; color: var(--text2); font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all 0.18s; font-family: 'Nunito', sans-serif;
+  }
+  .lsw-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  .result-card {
+    background: white; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px 22px; cursor: pointer; transition: all 0.2s;
+    position: relative; overflow: hidden; animation: fadeUp 0.4s ease both;
+  }
+  .result-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+  }
+  .result-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+  .result-card.selected {
+    border: 2px solid var(--accent); box-shadow: 0 0 0 3px var(--accent-light);
+  }
+  .result-text {
+    font-size: 19px; font-weight: 800; color: var(--text); margin-bottom: 6px;
+    font-family: 'Quicksand', sans-serif; line-height: 1.4;
+  }
+  .result-word {
+    display: inline-block; padding: 2px 4px; margin: 0 1px; border-radius: 4px;
+    transition: all 0.15s; cursor: pointer;
+  }
+  .result-word:hover {
+    background: var(--accent-light); color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .result-sub { font-size: 12px; color: var(--text3); font-weight: 600; margin-top: 4px; }
+  .result-kr { font-size: 13px; color: var(--text2); font-weight: 600; margin-top: 6px; }
+  .favorite-icon {
+    position: absolute; top: 12px; right: 12px; width: 30px; height: 30px;
+    border-radius: 50%; background: white; display: flex;
+    align-items: center; justify-content: center; font-size: 18px;
+    cursor: pointer; transition: all 0.2s; border: 2px solid var(--border);
+    filter: grayscale(100%); opacity: 0.6;
+  }
+  .favorite-icon:hover { transform: scale(1.1); opacity: 1; filter: grayscale(0%); }
+  .favorite-icon.active { filter: grayscale(0%); opacity: 1; background: var(--amber-light); border-color: var(--amber); }
+  
+  /* 선택된 단어 영구 하이라이트 */
+  .word-selected {
+    background: var(--accent-light) !important;
+    color: var(--accent) !important;
+    border-radius: 6px;
+    padding: 3px 6px;
+    font-weight: 700;
+  }
+  
+  .result-text-phrase {
+    font-size: 19px; font-weight: 800; color: var(--text);
+    font-family: 'Quicksand', sans-serif; line-height: 1.4;
+    cursor: pointer; transition: all 0.2s; padding: 4px 8px; border-radius: 8px;
+  }
+  .result-text-phrase:hover {
+    background: var(--primary-light); color: var(--primary-dark);
+  }
+  .result-text-phrase.phrase-selected {
+    background: var(--accent) !important;
+    color: white !important;
+    font-weight: 800;
+  }
+  
+  .result-text-small {
+    font-size: 12px; color: var(--text3); margin-top: 6px;
+    font-weight: 600; line-height: 1.6;
+  }
+  .word-with-star {
+    display: inline-flex; align-items: center; gap: 2px; margin: 0 2px;
+  }
+  .result-text-small .result-word {
+    display: inline-block; padding: 2px 4px; border-radius: 4px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .result-text-small .result-word:hover {
+    background: var(--accent-light); color: var(--accent);
+  }
+  .word-mini-star {
+    font-size: 11px; opacity: 0.4; cursor: pointer; transition: all 0.15s;
+  }
+  .word-mini-star:hover {
+    opacity: 1; transform: scale(1.2);
+  }
+  .word-mini-star.active {
+    opacity: 1;
+  }
+
+  .copied-toast {
+    position: fixed; bottom: 32px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--text); color: white; padding: 10px 24px;
+    border-radius: 30px; font-size: 14px; font-weight: 700;
+    transition: transform 0.3s ease; z-index: 999; pointer-events: none;
+  }
+  .copied-toast.show { transform: translateX(-50%) translateY(0); }
+  .analysis-card {
+    background: linear-gradient(135deg, #FFF5F9, #F0EEFF);
+    border: 1px solid #F0D8E8; border-radius: var(--radius);
+    padding: 26px 30px; margin-top: 20px; position: relative; overflow: hidden;
+  }
+  .analysis-card::after {
+    content: '✨'; position: absolute; right: 22px; top: 18px; font-size: 30px; opacity: 0.3;
+  }
+  .analysis-title {
+    font-family: 'Quicksand', sans-serif; font-size: 15px; font-weight: 700;
+    color: var(--primary-dark); margin-bottom: 10px;
+  }
+  .analysis-text { 
+    font-size: 14px; line-height: 1.9; color: var(--text);
+  }
+  .analysis-text div {
+    margin-bottom: 8px; padding-left: 14px; position: relative;
+  }
+  .analysis-text div::before {
+    content: '•'; position: absolute; left: 0; color: var(--primary); font-weight: 700;
+  }
+  .loading-overlay { text-align: center; padding: 40px; }
+  .loading-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; }
+  .loading-dots span {
+    width: 10px; height: 10px; border-radius: 50%; background: var(--primary);
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.15s; background: var(--accent); }
+  .loading-dots span:nth-child(3) { animation-delay: 0.3s; background: var(--mint); }
+  .loading-text { color: var(--text2); font-size: 14px; font-weight: 600; }
+  .spinner {
+    width: 17px; height: 17px; border: 2.5px solid rgba(255,255,255,0.4);
+    border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;
+    display: inline-block; margin-right: 8px; vertical-align: middle;
+  }
+
+  /* 유사단어/문구 박스 */
+  .similar-box {
+    background: var(--surface); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 20px 24px;
+    margin-top: 16px; box-shadow: var(--shadow);
+  }
+  .similar-box h3 {
+    font-family: 'Quicksand', sans-serif; font-size: 15px; font-weight: 700;
+    color: var(--text); margin-bottom: 10px;
+  }
+  .similar-text {
+    font-size: 13px; color: var(--text2); margin-bottom: 10px;
+  }
+  .selected-words-display {
+    background: var(--accent-light); border: 2px solid var(--accent);
+    border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 12px;
+    display: none;
+  }
+  .selected-words-display.show { display: block; }
+  .selected-words-label {
+    font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .selected-words-list {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .selected-word-tag {
+    padding: 4px 10px; background: white; border: 1.5px solid var(--accent);
+    border-radius: 20px; font-size: 12px; font-weight: 700; color: var(--accent);
+    font-family: 'Nunito', sans-serif; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .selected-word-tag button {
+    background: none; border: none; color: var(--accent); cursor: pointer;
+    font-weight: 700; padding: 0; font-size: 14px; line-height: 1;
+  }
+  .similar-btn-group {
+    display: flex; gap: 8px; margin-bottom: 12px;
+  }
+  .similar-btn {
+    flex: 1; padding: 10px 16px; background: var(--mint-light); color: var(--mint); border: none;
+    border-radius: var(--radius-sm); font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: 'Nunito', sans-serif; transition: all 0.2s;
+  }
+  .similar-btn:hover { background: var(--mint); color: white; }
+  .similar-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .similar-results {
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .similar-group {
+    border: 1.5px solid var(--mint); border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .similar-group-label {
+    background: var(--mint); color: white; font-size: 12px; font-weight: 700;
+    padding: 7px 14px; font-family: 'Nunito', sans-serif;
+  }
+  .similar-group-items {
+    display: flex; flex-direction: column; gap: 1px; background: var(--border);
+  }
+  .similar-item-card {
+    background: var(--mint-light); border: none;
+    border-radius: 0;
+    padding: 10px 14px;
+  }
+  .similar-item-text {
+    font-size: 14px; font-weight: 700; color: var(--text);
+    margin-bottom: 4px;
+  }
+  .similar-item-kr {
+    font-size: 12px; color: var(--text2);
+  }
+
+  /* 문구 전체 선택 버튼 */
+  .select-phrase-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    margin-top: 8px; padding: 4px 10px;
+    background: var(--accent-light); color: var(--accent);
+    border: 1.5px solid var(--accent); border-radius: 20px;
+    font-size: 11px; font-weight: 700; cursor: pointer;
+    font-family: 'Nunito', sans-serif; transition: all 0.18s;
+  }
+  .select-phrase-btn:hover { background: var(--accent); color: white; }
+  .result-word-single:hover {
+    cursor: pointer; color: var(--accent);
+  }
+
+  /* 피드백 (맨 아래) */
+  .feedback-box {
+    background: var(--surface); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 20px 24px;
+    margin-top: 16px; box-shadow: var(--shadow);
+  }
+  .feedback-box h3 {
+    font-family: 'Quicksand', sans-serif; font-size: 15px; font-weight: 700;
+    color: var(--text); margin-bottom: 10px;
+  }
+  .feedback-rating {
+    display: flex; gap: 12px; margin-bottom: 16px; justify-content: center;
+  }
+  .rating-btn {
+    padding: 12px 24px; border-radius: var(--radius-sm); border: 2px solid var(--border);
+    background: white; cursor: pointer; transition: all 0.2s; font-size: 24px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .rating-btn:hover { transform: translateY(-2px); }
+  .rating-btn.liked { border-color: var(--mint); background: var(--mint-light); }
+  .rating-btn.disliked { border-color: #ff6b6b; background: #ffe5e5; }
+  .rating-label {
+    font-size: 13px; font-weight: 700; color: var(--text2);
+  }
+  .feedback-input-wrap {
+    display: flex; gap: 8px; margin-bottom: 10px;
+  }
+  .feedback-input {
+    flex: 1; padding: 9px 13px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 13px; font-family: 'Nunito', sans-serif; outline: none; background: white; color: var(--text);
+    transition: border-color 0.2s;
+  }
+  .feedback-input:focus { border-color: var(--accent); }
+  .feedback-btn {
+    padding: 9px 16px; background: var(--amber-light); color: var(--amber); border: none;
+    border-radius: var(--radius-sm); font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: 'Nunito', sans-serif; transition: all 0.2s; white-space: nowrap;
+  }
+  .feedback-btn:hover { background: var(--amber); color: white; }
+  .feedback-list {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .feedback-item {
+    padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 700;
+    border: 1.5px solid var(--amber); background: var(--amber-light); color: var(--amber);
+    font-family: 'Nunito', sans-serif; position: relative; padding-right: 26px;
+  }
+  .feedback-item button {
+    position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: #d9534f; cursor: pointer;
+    font-weight: 700; padding: 0 4px; font-size: 14px;
+  }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes bounce { 0%,80%,100%{transform:scale(0.7);opacity:0.5;} 40%{transform:scale(1);opacity:1;} }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">✦</div>
+    Pixel<span>Phrase</span>
+  </div>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <div class="header-tag">AI Word & Phrase Generator</div>
+    <button class="my-btn" onclick="toggleMyPanel()">⭐ 즐겨찾기</button>
+  </div>
+</header>
+
+<!-- My 패널 -->
+<div class="my-overlay" id="myOverlay" onclick="toggleMyPanel()"></div>
+<div class="my-panel" id="myPanel">
+  <div class="my-panel-header">
+    <h2>⭐ 즐겨찾기</h2>
+    <button class="close-btn" onclick="toggleMyPanel()">×</button>
+  </div>
+  
+  <div class="feature-tabs">
+    <button class="feature-tab active" onclick="showFeature('words',this)">⭐ 단어</button>
+    <button class="feature-tab" onclick="showFeature('phrases',this)">⭐ 문구</button>
+  </div>
+
+  <div id="words-section" class="feature-section active">
+    <p style="font-size:13px;color:var(--text2);margin-bottom:10px;">별 아이콘을 눌러서 즐겨찾기한 단어들이에요.</p>
+    <div class="favorite-list" id="favoriteWordsList"></div>
+  </div>
+
+  <div id="phrases-section" class="feature-section" style="display:none">
+    <p style="font-size:13px;color:var(--text2);margin-bottom:10px;">별 아이콘을 눌러서 즐겨찾기한 문구들이에요.</p>
+    <div class="favorite-list" id="favoritePhrasesList"></div>
+  </div>
+</div>
+
+<main>
+  <div class="hero">
+    <h1>타겟과 분위기에 <em>딱 맞는</em><br><strong>단어·문구를 AI가 추천</strong>해드려요</h1>
+    <p>이미지를 올리면 사진의 분위기까지 분석해서 더 정확하게 추천해드려요 🎨<br>이미지 없이 키워드·타겟·감정만으로도 바로 사용 가능해요 ✨</p>
+  </div>
+
+  <!-- 언어 -->
+  <div class="card">
+    <div class="card-title">🌍 출력 언어 선택</div>
+    <div class="lang-primary" id="langButtons">
+      <button class="lang-btn active" data-lang="ko" onclick="setLang('ko',this)">
+        <span class="lang-native">🇰🇷 한국어</span>
+      </button>
+      <button class="lang-btn" data-lang="en" onclick="setLang('en',this)">
+        <span class="lang-native">🇺🇸 English</span>
+        <span class="lang-kr">영어</span>
+      </button>
+      <button class="lang-btn" data-lang="fr" onclick="setLang('fr',this)">
+        <span class="lang-native">🇫🇷 Français</span>
+        <span class="lang-kr">프랑스어</span>
+      </button>
+      <button class="lang-btn" data-lang="ja" onclick="setLang('ja',this)">
+        <span class="lang-native">🇯🇵 日本語</span>
+        <span class="lang-kr">일본어</span>
+      </button>
+      <button class="lang-btn" data-lang="zh" onclick="setLang('zh',this)">
+        <span class="lang-native">🇨🇳 中文</span>
+        <span class="lang-kr">중국어</span>
+      </button>
+      <div class="lang-more-wrap">
+        <button class="lang-more-btn" onclick="toggleLangDropdown()">+ 더 많은 언어</button>
+        <div class="lang-dropdown" id="langDropdown">
+          <div class="lang-option" onclick="selectMoreLang('es','🇪🇸 Español','스페인어')">🇪🇸 Español<span class="lang-option-kr">스페인어</span></div>
+          <div class="lang-option" onclick="selectMoreLang('de','🇩🇪 Deutsch','독일어')">🇩🇪 Deutsch<span class="lang-option-kr">독일어</span></div>
+          <div class="lang-option" onclick="selectMoreLang('it','🇮🇹 Italiano','이탈리아어')">🇮🇹 Italiano<span class="lang-option-kr">이탈리아어</span></div>
+          <div class="lang-option" onclick="selectMoreLang('pt','🇵🇹 Português','포르투갈어')">🇵🇹 Português<span class="lang-option-kr">포르투갈어</span></div>
+          <div class="lang-option" onclick="selectMoreLang('ru','🇷🇺 Русский','러시아어')">🇷🇺 Русский<span class="lang-option-kr">러시아어</span></div>
+          <div class="lang-option" onclick="selectMoreLang('ar','🇸🇦 العربية','아랍어')">🇸🇦 العربية<span class="lang-option-kr">아랍어</span></div>
+          <div class="lang-option" onclick="selectMoreLang('hi','🇮🇳 हिन्दी','힌디어')">🇮🇳 हिन्दी<span class="lang-option-kr">힌디어</span></div>
+          <div class="lang-option" onclick="selectMoreLang('th','🇹🇭 ภาษาไทย','태국어')">🇹🇭 ภาษาไทย<span class="lang-option-kr">태국어</span></div>
+          <div class="lang-option" onclick="selectMoreLang('vi','🇻🇳 Tiếng Việt','베트남어')">🇻🇳 Tiếng Việt<span class="lang-option-kr">베트남어</span></div>
+          <div class="lang-option" onclick="selectMoreLang('id','🇮🇩 Bahasa Indonesia','인도네시아어')">🇮🇩 Bahasa Indonesia<span class="lang-option-kr">인도네시아어</span></div>
+          <div class="lang-option" onclick="selectMoreLang('nl','🇳🇱 Nederlands','네덜란드어')">🇳🇱 Nederlands<span class="lang-option-kr">네덜란드어</span></div>
+          <div class="lang-option" onclick="selectMoreLang('pl','🇵🇱 Polski','폴란드어')">🇵🇱 Polski<span class="lang-option-kr">폴란드어</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 이미지 업로드 (선택) -->
+  <div class="card">
+    <div class="card-title">📸 이미지 업로드 <span class="badge-optional">선택</span></div>
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('uploadInput').click()">
+      <div class="upload-icon">🖼️</div>
+      <h3>이미지를 올리면 분위기까지 반영해드려요</h3>
+      <p>이미지 없이도 추천 가능해요 · 드래그, 클릭, Ctrl+V 붙여넣기 모두 지원</p>
+      <div class="upload-methods">
+        <span class="method-badge upload">📂 파일 선택</span>
+        <span class="method-badge drag">🖱️ 드래그</span>
+        <span class="method-badge paste">📋 붙여넣기</span>
+      </div>
+      <input type="file" id="uploadInput" accept="image/*" onchange="handleFileUpload(event)">
+      <img id="previewImg" alt="미리보기">
+      <div class="image-overlay" id="imageOverlay">
+        <button class="overlay-btn" onclick="event.stopPropagation();clearImage()">🗑️ 삭제</button>
+        <button class="overlay-btn" onclick="event.stopPropagation();document.getElementById('uploadInput').click()">🔄 교체</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 출력 설정 (필수) -->
+  <div class="card">
+    <div class="card-title">⚙️ 출력 설정 <span class="badge-required">필수</span></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>단어 or 문구</label>
+        <div class="type-toggle">
+          <button class="type-btn active" id="typeWord" onclick="setType('word')">단어</button>
+          <button class="type-btn" id="typePhrase" onclick="setType('phrase')">문구</button>
+          <button class="type-btn" id="typeBoth" onclick="setType('both')">혼합</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>결과 개수</label>
+        <select class="form-control" id="resultCount">
+          <option value="10" selected>10개</option>
+          <option value="20">20개</option>
+          <option value="30">30개</option>
+          <option value="40">40개</option>
+          <option value="50">50개 이상</option>
+        </select>
+      </div>
+      <div class="form-group" id="wordLenGroup">
+        <label>단어 글자 수 (선택)</label>
+        <div class="range-slider-wrap">
+          <input type="range" class="range-slider" id="wordLenSlider" min="0" max="21" value="0" oninput="updateWordLen()">
+          <span class="range-display" id="wordLenDisplay">상관없음</span>
+        </div>
+      </div>
+      <div class="form-group" id="wordCountGroup" style="display:none">
+        <label>문구 내 단어 수 (선택)</label>
+        <div class="range-slider-wrap">
+          <input type="range" class="range-slider" id="phraseWordSlider" min="0" max="21" value="0" oninput="updatePhraseWord()">
+          <span class="range-display" id="phraseWordDisplay">상관없음</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 타겟 설정 (필수) -->
+  <div class="card">
+    <div class="card-title">🎯 타겟 설정 <span class="badge-required">필수</span></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>나이대</label>
+        <select class="form-control" id="targetAge">
+          <option value="">나이 무관</option>
+          <option value="유아 (0-5세)">유아 (0~5세)</option>
+          <option value="오즈키즈 (4-7세)">오즈키즈 (4~7세)</option>
+          <option value="어린이 (6-12세)">어린이 (6~12세)</option>
+          <option value="청소년 (13-18세)">청소년 (13~18세)</option>
+          <option value="20대">20대</option>
+          <option value="30대">30대</option>
+          <option value="40대">40대</option>
+          <option value="50대 이상">50대 이상</option>
+          <option value="전연령">전 연령</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>성별</label>
+        <div class="gender-toggle">
+          <button class="gender-btn active" id="genderNone" onclick="setGender('',this)">성별 무관</button>
+          <button class="gender-btn" id="genderFemale" onclick="setGender('여아/여성',this)">여</button>
+          <button class="gender-btn" id="genderMale" onclick="setGender('남아/남성',this)">남</button>
+        </div>
+      </div>
+      <div class="form-group form-full">
+        <label>추가 특징 (선택)</label>
+        <input type="text" class="form-control" id="targetNote" placeholder="예: 운동을 좋아하는, 독서를 즐기는, 감성적인...">
+      </div>
+    </div>
+  </div>
+
+  <!-- 분위기 키워드 (필수) -->
+  <div class="card">
+    <div class="card-title">✨ 분위기 키워드 <span class="badge-required">필수</span></div>
+    <div class="section-label">💗 여자아이 / 여성</div>
+    <div class="keywords-grid" id="girlKeywords">
+      <span class="keyword-chip girl" onclick="toggleChip(this)">귀여운</span>
+      <span class="keyword-chip girl" onclick="toggleChip(this)">사랑스러운</span>
+      <span class="keyword-chip girl" onclick="toggleChip(this)">발랄한</span>
+      <span class="keyword-chip girl" onclick="toggleChip(this)">톡톡 튀는</span>
+      <span class="keyword-chip girl" onclick="toggleChip(this)">상큼한</span>
+      <span class="keyword-chip girl" onclick="toggleChip(this)">공주풍의</span>
+      <span class="keyword-chip girl" onclick="toggleChip(this)">반짝이는</span>
+      <span class="keyword-chip girl" onclick="toggleChip(this)">고급스러운</span>
+      <span class="keyword-chip girl" onclick="toggleChip(this)">순수한</span>
+      <span class="keyword-chip girl" onclick="toggleChip(this)">몽환적인</span>
+      <span class="keyword-chip girl" onclick="toggleChip(this)">우아한</span>
+      <span class="keyword-chip girl" onclick="toggleChip(this)">낭만적인</span>
+      <span class="keyword-chip girl" onclick="toggleChip(this)">아름다운</span>
+    </div>
+    <div class="section-label">💙 남자아이 / 남성</div>
+    <div class="keywords-grid" id="boyKeywords">
+      <span class="keyword-chip" onclick="toggleChip(this)">스포티한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">에너제틱한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">멋진</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">당당한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">용기있는</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">엉뚱한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">모험심있는</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">어른스러운</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">시원한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">강인한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">듬직한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">대담한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">역동적인</span>
+    </div>
+    <div class="section-label">🌟 공통 / 기타</div>
+    <div class="keywords-grid" id="commonKeywords">
+      <span class="keyword-chip" onclick="toggleChip(this)">따뜻한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">자연스러운</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">미니멀한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">빈티지</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">트렌디한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">신비로운</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">청량한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">감성적인</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">자유로운</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">지적인</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">영리한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">고요한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">깨끗한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">싱그러운</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">날카로운</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">섬세한</span>
+      <span class="keyword-chip" onclick="toggleChip(this)">유쾌한</span>
+    </div>
+    <div class="keyword-add-wrap">
+      <input type="text" class="keyword-add-input" id="newKeywordInput" placeholder="나만의 키워드 추가..." onkeydown="if(event.key==='Enter')addKeyword()">
+      <button class="keyword-add-btn" onclick="addKeyword()">+ 추가</button>
+    </div>
+    <div class="shared-note-kw">💡 추가한 키워드는 앱을 사용하는 모든 분께 표시돼요</div>
+
+    <!-- 톤 강도 슬라이더 (키워드 선택 시 동적으로 표시) -->
+    <div class="tone-sliders" id="toneSliders"></div>
+  </div>
+
+  <!-- 계절·특별한날·상황·감정 (선택) -->
+  <div class="card">
+    <div class="card-title">🗓️ 계절 · 특별한 날 · 상황 · 감정 <span class="badge-optional">선택</span></div>
+    <div class="section-tabs" id="contextTabs">
+      <button class="stab active" onclick="showCtx('season',this)">🌸 계절</button>
+      <button class="stab" onclick="showCtx('event',this)">🎉 특별한 날</button>
+      <button class="stab" onclick="showCtx('situation',this)">📚 상황</button>
+      <button class="stab" onclick="showCtx('emotion',this)">💭 감정</button>
+    </div>
+
+    <div id="ctx-season">
+      <div class="pill-group">
+        <span class="pill season-spring" onclick="togglePill(this)">🌸 봄</span>
+        <span class="pill season-summer" onclick="togglePill(this)">☀️ 여름</span>
+        <span class="pill season-fall" onclick="togglePill(this)">🍂 가을</span>
+        <span class="pill season-winter" onclick="togglePill(this)">❄️ 겨울</span>
+      </div>
+    </div>
+
+    <div id="ctx-event" style="display:none">
+      <div class="pill-group" id="eventPills">
+        <span class="pill event" onclick="togglePill(this)">🎊 새해</span>
+        <span class="pill event" onclick="togglePill(this)">🎄 크리스마스</span>
+        <span class="pill event" onclick="togglePill(this)">💝 발렌타인데이</span>
+        <span class="pill event" onclick="togglePill(this)">🤍 화이트데이</span>
+        <span class="pill event" onclick="togglePill(this)">🌹 로즈데이</span>
+        <span class="pill event" onclick="togglePill(this)">🎍 설날</span>
+        <span class="pill event" onclick="togglePill(this)">🌕 추석</span>
+        <span class="pill event" onclick="togglePill(this)">🧒 어린이날</span>
+        <span class="pill event" onclick="togglePill(this)">👨‍👩‍👧 어버이날</span>
+        <span class="pill event" onclick="togglePill(this)">🌳 식목일</span>
+        <span class="pill event" onclick="togglePill(this)">⛎ 동지</span>
+        <span class="pill event" onclick="togglePill(this)">🍫 빼빼로데이</span>
+        <span class="pill event" onclick="togglePill(this)">🎉 생일</span>
+        <span class="pill event" onclick="togglePill(this)">💒 결혼기념일</span>
+      </div>
+      <div class="pill-add-row">
+        <input class="pill-add-input" id="eventInput" placeholder="특별한 날 추가..." onkeydown="if(event.key==='Enter')addCustomPill('event','eventInput','eventPills')">
+        <button class="pill-add-btn" onclick="addCustomPill('event','eventInput','eventPills')">+ 추가</button>
+      </div>
+      <div class="shared-note">💡 추가한 항목은 앱을 사용하는 모든 분께 표시돼요</div>
+    </div>
+
+    <div id="ctx-situation" style="display:none">
+      <div class="pill-group" id="situationPills">
+        <span class="pill situation" onclick="togglePill(this)">🏫 입학식</span>
+        <span class="pill situation" onclick="togglePill(this)">🎓 졸업식</span>
+        <span class="pill situation" onclick="togglePill(this)">📚 시험날</span>
+        <span class="pill situation" onclick="togglePill(this)">🏖️ 방학</span>
+        <span class="pill situation" onclick="togglePill(this)">😴 공강</span>
+        <span class="pill situation" onclick="togglePill(this)">🌙 크리스마스 이브</span>
+        <span class="pill situation" onclick="togglePill(this)">✈️ 여행 첫날</span>
+        <span class="pill situation" onclick="togglePill(this)">📅 연차</span>
+        <span class="pill situation" onclick="togglePill(this)">🍽️ 맛있는 밥</span>
+        <span class="pill situation" onclick="togglePill(this)">🌅 일출</span>
+        <span class="pill situation" onclick="togglePill(this)">🌃 야경</span>
+        <span class="pill situation" onclick="togglePill(this)">☕ 카페</span>
+        <span class="pill situation" onclick="togglePill(this)">☔ 장마</span>
+        <span class="pill situation" onclick="togglePill(this)">🌸 벚꽃놀이</span>
+        <span class="pill situation" onclick="togglePill(this)">🍁 단풍놀이</span>
+        <span class="pill situation" onclick="togglePill(this)">🎆 불꽃축제</span>
+        <span class="pill situation" onclick="togglePill(this)">🚗 드라이브</span>
+        <span class="pill situation" onclick="togglePill(this)">🎊 연초</span>
+        <span class="pill situation" onclick="togglePill(this)">🎉 연말</span>
+      </div>
+      <div class="pill-add-row">
+        <input class="pill-add-input" id="situationInput" placeholder="상황 추가..." onkeydown="if(event.key==='Enter')addCustomPill('situation','situationInput','situationPills')">
+        <button class="pill-add-btn" onclick="addCustomPill('situation','situationInput','situationPills')">+ 추가</button>
+      </div>
+      <div class="shared-note">💡 추가한 항목은 앱을 사용하는 모든 분께 표시돼요</div>
+    </div>
+
+    <div id="ctx-emotion" style="display:none">
+      <div class="pill-group" id="emotionPills">
+        <span class="pill emotion" onclick="togglePill(this)">😊 기쁨</span>
+        <span class="pill emotion" onclick="togglePill(this)">😔 우울</span>
+        <span class="pill emotion" onclick="togglePill(this)">😤 화남</span>
+        <span class="pill emotion" onclick="togglePill(this)">😫 귀찮음</span>
+        <span class="pill emotion" onclick="togglePill(this)">😆 신남</span>
+        <span class="pill emotion" onclick="togglePill(this)">💕 두근대는</span>
+        <span class="pill emotion" onclick="togglePill(this)">🤩 기대됨</span>
+        <span class="pill emotion" onclick="togglePill(this)">😱 무서움</span>
+        <span class="pill emotion" onclick="togglePill(this)">😑 무기력</span>
+        <span class="pill emotion" onclick="togglePill(this)">🌈 설레는</span>
+        <span class="pill emotion" onclick="togglePill(this)">😰 불안한</span>
+        <span class="pill emotion" onclick="togglePill(this)">😌 평온한</span>
+        <span class="pill emotion" onclick="togglePill(this)">🥹 감동적인</span>
+        <span class="pill emotion" onclick="togglePill(this)">😒 짜증</span>
+        <span class="pill emotion" onclick="togglePill(this)">😢 슬픔</span>
+        <span class="pill emotion" onclick="togglePill(this)">😬 긴장됨</span>
+        <span class="pill emotion" onclick="togglePill(this)">🤣 재밌는</span>
+        <span class="pill emotion" onclick="togglePill(this)">😂 웃긴</span>
+        <span class="pill emotion" onclick="togglePill(this)">😩 답답한</span>
+        <span class="pill emotion" onclick="togglePill(this)">❤️ 사랑</span>
+      </div>
+      <div class="pill-add-row">
+        <input class="pill-add-input" id="emotionInput" placeholder="감정 추가..." onkeydown="if(event.key==='Enter')addCustomPill('emotion','emotionInput','emotionPills')">
+        <button class="pill-add-btn" onclick="addCustomPill('emotion','emotionInput','emotionPills')">+ 추가</button>
+      </div>
+      <div class="shared-note">💡 추가한 항목은 앱을 사용하는 모든 분께 표시돼요</div>
+    </div>
+  </div>
+
+  <!-- 포함/제외 (선택) -->
+  <div class="card">
+    <div class="card-title">📝 포함 / 제외 조건 <span class="badge-optional">선택</span></div>
+    <div class="must-inputs">
+      <div class="form-group">
+        <label>반드시 포함해야 하는 단어/글자</label>
+        <input type="text" class="form-control" id="mustInclude" placeholder="예: 봄, love, 사랑...">
+        <div class="char-hint">쉼표로 구분해 여러 개 입력 가능</div>
+      </div>
+      <div class="form-group">
+        <label>반드시 제외해야 하는 단어/글자</label>
+        <input type="text" class="form-control" id="mustExclude" placeholder="예: 슬픔, death...">
+        <div class="char-hint">쉼표로 구분해 여러 개 입력 가능</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="generate-wrap">
+    <button class="generate-btn" id="generateBtn" onclick="generate()">✦ AI 단어·문구 추천 받기</button>
+  </div>
+
+  <!-- 결과 -->
+  <div id="resultsSection" style="display:none">
+    <div class="results-header">
+      <h2>✨ 추천 결과</h2>
+      <div class="lang-switch-bar" id="langSwitchBar"><span>언어 변경:</span></div>
+    </div>
+    <div id="loadingOverlay" class="loading-overlay" style="display:none">
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+      <div class="loading-text" id="loadingText">AI가 열심히 만들고 있어요...</div>
+    </div>
+    <div class="results-grid" id="resultsGrid"></div>
+    <div class="analysis-card" id="analysisCard" style="display:none">
+      <div class="analysis-title">🫧 이렇게 사용하면 좋을 것 같아요!</div>
+      <div class="analysis-text" id="analysisText"></div>
+    </div>
+
+    <!-- 유사 단어/문구 섹션 -->
+    <div class="similar-box" id="similarBox" style="display:none">
+      <h3>🔄 비슷한 단어·문구 추천</h3>
+      <p class="similar-text">결과를 클릭하거나, 문구 안의 단어에 마우스를 올리고 클릭해보세요!</p>
+      
+      <div class="selected-words-display" id="selectedDisplay">
+        <div class="selected-words-label">선택한 단어 (<span id="selectedCount">0</span>개)</div>
+        <div class="selected-words-list" id="selectedList"></div>
+      </div>
+
+      <div class="similar-btn-group">
+        <button class="similar-btn" onclick="requestSimilarWords()" id="similarWordBtn">비슷한 단어 추천</button>
+        <button class="similar-btn" onclick="requestSimilarPhrases()" id="similarPhraseBtn">비슷한 문구 추천</button>
+      </div>
+      
+      <div class="similar-results" id="similarResults"></div>
+    </div>
+
+    <!-- 피드백 섹션 (맨 아래) -->
+  </div>
+</main>
+
+<div class="copied-toast" id="copiedToast">✓ 클립보드에 복사됐어요!</div>
+
+<script>
+let currentLang = 'ko';
+let currentType = 'word';
+let currentGender = '';
+let uploadedImageBase64 = null;
+let uploadedImageType = null;
+let lastPromptData = null;
+let currentResults = [];
+let selectedWords = [];
+let userRating = null;
+let userFeedbacks = [];
+let favoriteWords = []; // 즐겨찾기한 단어 목록
+let favoritePhrases = []; // 즐겨찾기한 문구 목록
+
+const STORAGE_KEY = 'pixelphrase_data_v1';
+const FAVORITE_KEY = 'pixelphrase_favorites_v1';
+
+const langNames = {
+  ko:'한국어', en:'English', fr:'Français', ja:'日本語', zh:'中文',
+  es:'Español', de:'Deutsch', it:'Italiano', pt:'Português', ru:'Русский',
+  ar:'العربية', hi:'हिन्दी', th:'ภาษาไทย', vi:'Tiếng Việt', id:'Bahasa Indonesia',
+  nl:'Nederlands', pl:'Polski'
+};
+const langKrName = {
+  ko:'한국어', en:'영어', fr:'프랑스어', ja:'일본어', zh:'중국어',
+  es:'스페인어', de:'독일어', it:'이탈리아어', pt:'포르투갈어', ru:'러시아어',
+  ar:'아랍어', hi:'힌디어', th:'태국어', vi:'베트남어', id:'인도네시아어',
+  nl:'네덜란드어', pl:'폴란드어'
+};
+
+/* JSON 파싱 안전 함수 */
+function safeJsonParse(jsonStr) {
+  try {
+    // JSON 정제
+    let cleaned = jsonStr.replace(/```json|```/g,'').trim();
+    cleaned = cleaned.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/\t/g, ' ');
+    cleaned = cleaned.replace(/\s{2,}/g, ' ');
+    
+    // 잘린 JSON 복구 시도
+    if (!cleaned.endsWith('}')) {
+      // suggestions 배열이 닫히지 않은 경우
+      if (cleaned.includes('"suggestions"') && !cleaned.includes(']}')) {
+        cleaned += ']}';
+      }
+      // tips 배열이 닫히지 않은 경우
+      if (cleaned.includes('"tips"') && !cleaned.includes('"]')) {
+        cleaned += '"]';
+      }
+      // 전체 JSON이 닫히지 않은 경우
+      if (!cleaned.endsWith('}')) {
+        cleaned += '}';
+      }
+    }
+    
+    const parsed = JSON.parse(cleaned);
+    
+    // 필수 필드 확인
+    if (!parsed.suggestions || !Array.isArray(parsed.suggestions)) {
+      throw new Error('suggestions 배열이 없습니다');
+    }
+    
+    // words 배열 안전 처리
+    parsed.suggestions.forEach(s => {
+      if (!s.words) s.words = [];
+      if (!Array.isArray(s.words)) s.words = [];
+    });
+    
+    return parsed;
+  } catch(e) {
+    throw new Error(`JSON 파싱 실패: ${e.message}`);
+  }
+}
+
+/* My 패널 토글 */
+function toggleMyPanel() {
+  const panel = document.getElementById('myPanel');
+  const overlay = document.getElementById('myOverlay');
+  panel.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+/* 공유 저장소 */
+async function loadSharedData() {
+  try {
+    const result = await window.storage.get(STORAGE_KEY, true);
+    if (result && result.value) {
+      const data = JSON.parse(result.value);
+      (data.event || []).forEach(t => appendPill('event', t, 'eventPills', false));
+      (data.situation || []).forEach(t => appendPill('situation', t, 'situationPills', false));
+      (data.emotion || []).forEach(t => appendPill('emotion', t, 'emotionPills', false));
+      (data.keywords || []).forEach(t => appendKeywordCustom(t, false));
+    }
+  } catch(e) {}
+}
+
+async function saveSharedData() {
+  const col = id => Array.from(document.querySelectorAll(`#${id} .custom-pill`)).map(p => p.dataset.label);
+  const getCustomKeywords = () => Array.from(document.querySelectorAll('.keyword-chip.custom')).map(k => k.textContent);
+  try {
+    await window.storage.set(STORAGE_KEY, JSON.stringify({
+      event: col('eventPills'),
+      situation: col('situationPills'),
+      emotion: col('emotionPills'),
+      keywords: getCustomKeywords()
+    }), true);
+  } catch(e) {}
+}
+
+function appendPill(type, text, containerId, save = true) {
+  if (Array.from(document.querySelectorAll(`#${containerId} .pill`)).some(p => (p.dataset.label || p.textContent.trim()) === text)) return;
+  const pill = document.createElement('span');
+  pill.className = `pill ${type} custom-pill`;
+  pill.dataset.label = text;
+  pill.textContent = text;
+  pill.onclick = () => pill.classList.toggle('active');
+  document.getElementById(containerId).appendChild(pill);
+  if (save) saveSharedData();
+}
+
+function appendKeywordCustom(text, save = true) {
+  if (Array.from(document.querySelectorAll('.keyword-chip.custom')).some(k => k.textContent === text)) return;
+  const chip = document.createElement('span');
+  chip.className = 'keyword-chip custom active';
+  chip.textContent = text;
+  chip.onclick = () => { chip.classList.toggle('active'); updateToneSliders(); };
+  document.getElementById('commonKeywords').appendChild(chip);
+  if (save) saveSharedData();
+}
+
+function addCustomPill(type, inputId, containerId) {
+  const input = document.getElementById(inputId);
+  const val = input.value.trim();
+  if (!val) return;
+  appendPill(type, val, containerId, true);
+  input.value = '';
+}
+
+/* 글자 수 슬라이더 */
+function updateWordLen() {
+  const val = parseInt(document.getElementById('wordLenSlider').value);
+  document.getElementById('wordLenDisplay').textContent = val === 0 ? '상관없음' : (val === 21 ? '20글자 이상' : val + '글자');
+}
+
+function getWordLen() {
+  const val = parseInt(document.getElementById('wordLenSlider').value);
+  return val === 0 ? '' : (val === 21 ? '20글자 이상' : val + '글자');
+}
+
+function updatePhraseWord() {
+  const val = parseInt(document.getElementById('phraseWordSlider').value);
+  document.getElementById('phraseWordDisplay').textContent = val === 0 ? '상관없음' : (val === 21 ? '20단어 이상' : val + '단어');
+}
+
+function getPhraseWord() {
+  const val = parseInt(document.getElementById('phraseWordSlider').value);
+  return val === 0 ? '' : (val === 21 ? '20단어 이상' : val + '단어');
+}
+
+/* 언어 */
+function setLang(code, btn) {
+  currentLang = code;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function toggleLangDropdown() {
+  document.getElementById('langDropdown').classList.toggle('open');
+}
+
+function selectMoreLang(code, nativeLabel, krLabel) {
+  if (!document.querySelector(`.lang-btn[data-lang="${code}"]`)) {
+    const btn = document.createElement('button');
+    btn.className = 'lang-btn';
+    btn.dataset.lang = code;
+    btn.innerHTML = `<span class="lang-native">${nativeLabel}</span><span class="lang-kr">${krLabel}</span>`;
+    btn.onclick = () => setLang(code, btn);
+    document.getElementById('langButtons').insertBefore(btn, document.querySelector('.lang-more-wrap'));
+  }
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  const target = document.querySelector(`.lang-btn[data-lang="${code}"]`);
+  if (target) target.classList.add('active');
+  currentLang = code;
+  document.getElementById('langDropdown').classList.remove('open');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.lang-more-wrap')) document.getElementById('langDropdown').classList.remove('open');
+});
+
+/* 타입 */
+function setType(t) {
+  currentType = t;
+  ['word','phrase','both'].forEach(x =>
+    document.getElementById('type'+x.charAt(0).toUpperCase()+x.slice(1)).classList.toggle('active', x===t)
+  );
+  document.getElementById('wordLenGroup').style.display = t==='phrase' ? 'none' : '';
+  document.getElementById('wordCountGroup').style.display = t==='word' ? 'none' : '';
+}
+
+/* 성별 */
+function setGender(gender, btn) {
+  currentGender = gender;
+  document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* 키워드 */
+function toggleChip(el) { 
+  el.classList.toggle('active'); 
+  updateToneSliders();
+}
+
+function addKeyword() {
+  const input = document.getElementById('newKeywordInput');
+  const val = input.value.trim();
+  if (!val) return;
+  appendKeywordCustom(val, true);
+  input.value = '';
+  updateToneSliders();
+}
+
+/* 톤 강도 슬라이더 업데이트 (5단계) */
+function updateToneSliders() {
+  const activeKeywords = Array.from(document.querySelectorAll('.keyword-chip.active')).map(k => k.textContent);
+  const container = document.getElementById('toneSliders');
+  
+  if (activeKeywords.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = '';
+  activeKeywords.forEach(kw => {
+    const control = document.createElement('div');
+    control.className = 'tone-control';
+    const toneLabels = ['약','약중','중','중강','강'];
+    control.innerHTML = `
+      <span class="tone-label">${kw}</span>
+      <input type="range" class="tone-slider" min="0" max="4" value="2" step="1" oninput="this.nextElementSibling.textContent='${toneLabels[0]}|${toneLabels[1]}|${toneLabels[2]}|${toneLabels[3]}|${toneLabels[4]}'.split('|')[this.value]">
+      <span class="tone-display">중</span>
+    `;
+    container.appendChild(control);
+  });
+}
+
+/* 컨텍스트 */
+function togglePill(el) { el.classList.toggle('active'); }
+function showCtx(name, btn) {
+  ['season','event','situation','emotion'].forEach(n =>
+    document.getElementById('ctx-'+n).style.display = n===name ? '' : 'none'
+  );
+  document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* 저장 & 히스토리 */
+function showFeature(name, btn) {
+  ['words','phrases'].forEach(n =>
+    document.getElementById(n+'-section').style.display = n===name ? 'block' : 'none'
+  );
+  document.querySelectorAll('.feature-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function addSavedWord(text) {
+  if (Array.from(document.querySelectorAll('#savedList .feature-item')).some(i => i.textContent.trim() === text)) return;
+  const item = document.createElement('span');
+  item.className = 'feature-item active';
+  item.textContent = text;
+  document.getElementById('savedList').appendChild(item);
+}
+
+/* 단어 선택 */
+function selectItem(text, event) {
+  if (event) event.stopPropagation();
+  
+  const isPhrase = text.includes(' ');
+  
+  // 배타적 선택: 단어 선택 시 문구 삭제, 문구 선택 시 단어 삭제
+  if (isPhrase) {
+    selectedWords = selectedWords.filter(w => w.includes(' '));
+  } else {
+    selectedWords = selectedWords.filter(w => !w.includes(' '));
+  }
+  
+  const idx = selectedWords.indexOf(text);
+  if (idx > -1) {
+    selectedWords.splice(idx, 1);
+  } else {
+    selectedWords.push(text);
+  }
+  
+  copyText(text);
+  updateSelectedDisplay();
+  updateResultHighlights(); // 전체 결과 하이라이트 업데이트
+}
+// 하위 호환
+function selectWord(word, event) { selectItem(word, event); }
+
+// 선택된 단어들 하이라이트 업데이트
+function updateResultHighlights() {
+  document.querySelectorAll('.result-word, .result-word-single').forEach(el => {
+    const text = el.textContent.trim();
+    if (selectedWords.includes(text)) {
+      el.classList.add('word-selected');
+    } else {
+      el.classList.remove('word-selected');
+    }
+  });
+  
+  document.querySelectorAll('.result-text-phrase').forEach(phrase => {
+    const text = phrase.textContent.trim();
+    if (selectedWords.includes(text)) {
+      phrase.classList.add('phrase-selected');
+    } else {
+      phrase.classList.remove('phrase-selected');
+    }
+  });
+}
+
+function updateSelectedDisplay() {
+  const display = document.getElementById('selectedDisplay');
+  const list = document.getElementById('selectedList');
+  const count = document.getElementById('selectedCount');
+  const label = document.querySelector('.selected-words-label');
+  const wordBtn = document.getElementById('similarWordBtn');
+  const phraseBtn = document.getElementById('similarPhraseBtn');
+  
+  if (selectedWords.length === 0) {
+    display.classList.remove('show');
+    if (wordBtn) wordBtn.disabled = true;
+    if (phraseBtn) phraseBtn.disabled = true;
+    return;
+  }
+  
+  // 단어/문구 구분
+  const hasPhrase = selectedWords.some(w => w.includes(' '));
+  const hasWord = selectedWords.some(w => !w.includes(' '));
+  
+  // 라벨 동적 변경
+  if (label) {
+    const labelText = hasPhrase ? '선택한 문구' : '선택한 단어';
+    label.innerHTML = `${labelText} (<span id="selectedCount">${selectedWords.length}</span>개)`;
+  }
+  
+  // 버튼 활성화
+  if (wordBtn) wordBtn.disabled = !hasWord;
+  if (phraseBtn) phraseBtn.disabled = !hasPhrase;
+  
+  display.classList.add('show');
+  list.innerHTML = '';
+  
+  selectedWords.forEach(word => {
+    const tag = document.createElement('span');
+    tag.className = 'selected-word-tag';
+    const btn = document.createElement('button');
+    btn.textContent = '×';
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      removeSelectedWord(word);
+    };
+    tag.appendChild(document.createTextNode(word));
+    tag.appendChild(btn);
+    list.appendChild(tag);
+  });
+}
+
+function removeSelectedWord(word) {
+  selectedWords = selectedWords.filter(w => w !== word);
+  updateSelectedDisplay();
+  updateResultHighlights(); // 하이라이트 업데이트
+}
+
+/* 유사 단어/문구 요청 */
+async function requestSimilarWords() {
+  if (selectedWords.length === 0) {
+    alert('단어나 문구를 먼저 선택해주세요! 🎯');
+    return;
+  }
+  
+  const btn = document.getElementById('similarWordBtn');
+  btn.disabled = true;
+  btn.textContent = '찾는 중...';
+  document.getElementById('similarResults').innerHTML = '';
+  
+  try {
+    const prompt = `다음 단어/문구 각각에 대해 ${langNames[currentLang]} 언어로 비슷한 단어를 3~5개씩 추천해줘.
+단어 목록: ${selectedWords.map((w,i) => `${i+1}. "${w}"`).join(', ')}
+
+JSON만 응답: {"groups":[{"source":"원래단어","results":[{"text":"추천단어","korean":"한글뜻"}]}]}
+korean: ${currentLang==='ko' ? '한국어이면 빈문자열' : '반드시 한글로 번역'}`;
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:800, messages:[{ role:'user', content:prompt }] })
+    });
+    const data = await res.json();
+    if (!data.content || !data.content[0]) throw new Error('응답 오류');
+    
+    // JSON 파싱 (유사 추천용 - groups 배열)
+    let text = data.content[0].text.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(text);
+    
+    if (!parsed.groups || !Array.isArray(parsed.groups)) {
+      throw new Error('groups 배열이 없습니다');
+    }
+    
+    const container = document.getElementById('similarResults');
+    container.innerHTML = '';
+    parsed.groups.forEach(group => {
+      const groupEl = document.createElement('div');
+      groupEl.className = 'similar-group';
+      groupEl.innerHTML = `<div class="similar-group-label">"${group.source}" 와 비슷한 단어</div>
+        <div class="similar-group-items">${
+          group.results.map(r => `
+            <div class="similar-item-card">
+              <div class="similar-item-text">${r.text}</div>
+              ${r.korean ? `<div class="similar-item-kr">${r.korean}</div>` : ''}
+            </div>`).join('')
+        }</div>`;
+      container.appendChild(groupEl);
+    });
+  } catch(err) {
+    document.getElementById('similarResults').innerHTML = `<div style="color:#d9534f;font-size:13px;">오류: ${err.message}</div>`;
+  }
+  
+  btn.disabled = false;
+  btn.textContent = '비슷한 단어 추천';
+}
+
+async function requestSimilarPhrases() {
+  if (selectedWords.length === 0) {
+    alert('단어나 문구를 먼저 선택해주세요! 🎯');
+    return;
+  }
+  
+  const btn = document.getElementById('similarPhraseBtn');
+  btn.disabled = true;
+  btn.textContent = '찾는 중...';
+  document.getElementById('similarResults').innerHTML = '';
+  
+  try {
+    const prompt = `다음 단어/문구 각각에 대해 ${langNames[currentLang]} 언어로 의미는 비슷하지만 단어는 다른 문구를 3~5개씩 추천해줘.
+단어/문구 목록: ${selectedWords.map((w,i) => `${i+1}. "${w}"`).join(', ')}
+
+JSON만 응답: {"groups":[{"source":"원래단어","results":[{"text":"추천문구","korean":"한글뜻"}]}]}
+korean: ${currentLang==='ko' ? '한국어이면 빈문자열' : '반드시 한글로 번역'}`;
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:900, messages:[{ role:'user', content:prompt }] })
+    });
+    const data = await res.json();
+    if (!data.content || !data.content[0]) throw new Error('응답 오류');
+    
+    // JSON 파싱 (유사 추천용 - groups 배열)
+    let text = data.content[0].text.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(text);
+    
+    if (!parsed.groups || !Array.isArray(parsed.groups)) {
+      throw new Error('groups 배열이 없습니다');
+    }
+    
+    const container = document.getElementById('similarResults');
+    container.innerHTML = '';
+    parsed.groups.forEach(group => {
+      const groupEl = document.createElement('div');
+      groupEl.className = 'similar-group';
+      groupEl.innerHTML = `<div class="similar-group-label">"${group.source}" 와 비슷한 문구</div>
+        <div class="similar-group-items">${
+          group.results.map(r => `
+            <div class="similar-item-card">
+              <div class="similar-item-text">${r.text}</div>
+              ${r.korean ? `<div class="similar-item-kr">${r.korean}</div>` : ''}
+            </div>`).join('')
+        }</div>`;
+      container.appendChild(groupEl);
+    });
+  } catch(err) {
+    document.getElementById('similarResults').innerHTML = `<div style="color:#d9534f;font-size:13px;">오류: ${err.message}</div>`;
+  }
+  
+  btn.disabled = false;
+  btn.textContent = '비슷한 문구 추천';
+}
+
+/* 이미지 업로드 */
+const uploadZone = document.getElementById('uploadZone');
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) setImageFile(file);
+});
+document.addEventListener('paste', e => {
+  for (const item of e.clipboardData.items)
+    if (item.type.startsWith('image/')) { setImageFile(item.getAsFile()); break; }
+});
+function handleFileUpload(e) { if (e.target.files[0]) setImageFile(e.target.files[0]); }
+
+function setImageFile(file) {
+  uploadedImageType = file.type;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    uploadedImageBase64 = ev.target.result.split(',')[1];
+    const img = document.getElementById('previewImg');
+    img.src = ev.target.result; img.style.display = 'block';
+    uploadZone.classList.add('has-image');
+    document.getElementById('imageOverlay').style.display = 'flex';
+    uploadZone.querySelector('.upload-icon').style.display = 'none';
+    uploadZone.querySelector('h3').style.display = 'none';
+    uploadZone.querySelector('p').style.display = 'none';
+    uploadZone.querySelector('.upload-methods').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImage() {
+  uploadedImageBase64 = null;
+  uploadedImageType = null;
+  const img = document.getElementById('previewImg'); img.style.display = 'none'; img.src = '';
+  uploadZone.classList.remove('has-image');
+  document.getElementById('imageOverlay').style.display = 'none';
+  uploadZone.querySelector('.upload-icon').style.display = '';
+  uploadZone.querySelector('h3').style.display = '';
+  uploadZone.querySelector('p').style.display = '';
+  uploadZone.querySelector('.upload-methods').style.display = '';
+  document.getElementById('uploadInput').value = '';
+}
+
+/* 데이터 수집 */
+function getChips(id) {
+  return Array.from(document.querySelectorAll(`#${id} .keyword-chip.active`)).map(c => c.textContent);
+}
+function getActivePills() {
+  return Array.from(document.querySelectorAll('.pill.active')).map(p => p.dataset.label || p.textContent.trim());
+}
+function getToneIntensity() {
+  const tones = [];
+  const toneLabels = ['약','약중','중','중강','강'];
+  document.querySelectorAll('.tone-control').forEach(t => {
+    const label = t.querySelector('.tone-label').textContent;
+    const val = parseInt(t.querySelector('.tone-slider').value);
+    tones.push(`${label}:${toneLabels[val]}`);
+  });
+  return tones.join(', ');
+}
+
+/* 프롬프트 */
+function buildPrompt(langCode) {
+  const d = lastPromptData;
+  const langLabel = langNames[langCode] || langCode;
+  const typeMap = { word:'단어만', phrase:'문구/문장만', both:'단어와 문구 혼합' };
+  const keywords = [...getChips('girlKeywords'), ...getChips('boyKeywords'), ...getChips('commonKeywords')];
+  const pills = getActivePills();
+  const hasImg = !!uploadedImageBase64;
+  const toneInfo = getToneIntensity();
+  const isKorean = langCode === 'ko';
+  
+  let feedbackStr = '';
+  if (userRating) feedbackStr += `\n- Previous rating: ${userRating === 'like' ? 'LIKED' : 'DISLIKED'}`;
+  if (userFeedbacks.length) feedbackStr += `\n- Feedback: ${userFeedbacks.join('; ')}`;
+
+  return `Creative copywriter. Generate ${d.count} ${typeMap[d.type]} in ${langLabel}.
+
+${hasImg ? 'IMAGE: Analyze mood/style.' : 'NO IMAGE: Use settings only.'}
+
+LANGUAGE: ${langLabel} (${langCode})
+
+SETTINGS:
+- Type: ${typeMap[d.type]}, Count: ${d.count}
+${d.wordLen ? `- Length: ${d.wordLen}` : ''}
+${d.phraseWordCount ? `- Words: ${d.phraseWordCount}` : ''}
+- Target: ${d.age || '무관'}, ${d.gender || '무관'}${d.note ? `, ${d.note}` : ''}
+${keywords.length ? `- Mood: ${keywords.join(', ')}` : ''}
+${toneInfo ? `- Tone: ${toneInfo}` : ''}
+${pills.length ? `- Context: ${pills.join(', ')}` : ''}
+${d.mustInclude ? `- Include: ${d.mustInclude}` : ''}
+${d.mustExclude ? `- Exclude: ${d.mustExclude}` : ''}${feedbackStr}
+
+RULES: Age-appropriate, creative, trendy. NO emojis.
+
+OUTPUT JSON:
+{
+  "suggestions": [
+    {
+      "text": "word or phrase",
+      "romanization": "${isKorean ? '' : 'if non-Latin script'}",
+      "korean": "${isKorean ? '' : 'Korean translation'}",
+      "words": ${isKorean ? '[]' : '[{"word":"word1","korean":"뜻1"},{"word":"word2","korean":"뜻2"}]'}
+    }
+  ],
+  "tips": ["tip1", "tip2", "tip3"]
+}
+
+IMPORTANT:
+- NO emojis in any output
+- For multi-word phrases: split into words array with individual Korean meanings
+- For single words: empty words array
+- Romanization: only for non-Latin scripts (Japanese, Chinese, etc)
+- Tips: MUST be in KOREAN (한글). Friendly, casual tone like talking to a friend. Short sentences (1 line each).`;
+}
+
+/* API 호출 */
+async function callAPI(langCode) {
+  const startTime = performance.now();
+  const prompt = buildPrompt(langCode);
+  
+  let content;
+  if (uploadedImageBase64) {
+    content = [
+      { type:'image', source:{ type:'base64', media_type: uploadedImageType || 'image/jpeg', data: uploadedImageBase64 }}, 
+      { type:'text', text:prompt }
+    ];
+  } else {
+    content = [{ type:'text', text:prompt }];
+  }
+  
+  const reqCount = parseInt(lastPromptData?.count || 10);
+  const maxTok = reqCount <= 10 ? 2000 : reqCount <= 20 ? 3000 : reqCount <= 30 ? 4000 : reqCount <= 40 ? 5000 : 6000;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify({ 
+      model:'claude-sonnet-4-20250514', 
+      max_tokens: maxTok,
+      messages:[{ role:'user', content }] 
+    })
+  });
+  
+  const data = await res.json();
+  const endTime = performance.now();
+  
+  if (!data.content || !data.content[0]) {
+    if (data.error) throw new Error(`API 오류: ${data.error.message}`);
+    throw new Error('API 응답이 비어있습니다');
+  }
+  
+  return safeJsonParse(data.content[0].text);
+}
+
+/* 생성 */
+async function generate() {
+  const keywords = [...getChips('girlKeywords'), ...getChips('boyKeywords'), ...getChips('commonKeywords')];
+  if (keywords.length === 0) { alert('분위기 키워드를 하나 이상 선택해주세요! ✨'); return; }
+
+  lastPromptData = {
+    count: document.getElementById('resultCount').value,
+    type: currentType,
+    wordLen: getWordLen(),
+    phraseWordCount: getPhraseWord(),
+    age: document.getElementById('targetAge').value,
+    gender: currentGender,
+    note: document.getElementById('targetNote').value,
+    mustInclude: document.getElementById('mustInclude').value,
+    mustExclude: document.getElementById('mustExclude').value,
+  };
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> AI 분석 중...';
+
+  const sec = document.getElementById('resultsSection');
+  sec.style.display = 'block';
+  document.getElementById('resultsGrid').innerHTML = '';
+  document.getElementById('loadingOverlay').style.display = 'block';
+  document.getElementById('analysisCard').style.display = 'none';
+  document.getElementById('similarBox').style.display = 'none';
+  document.getElementById('loadingText').textContent = uploadedImageBase64
+    ? '이미지 분석하고 단어를 만드는 중...'
+    : 'AI가 딱 맞는 단어·문구를 만드는 중...';
+  sec.scrollIntoView({ behavior:'smooth', block:'start' });
+
+  selectedWords = [];
+  updateSelectedDisplay();
+
+  try {
+    const parsed = await callAPI(currentLang);
+    currentResults = parsed.suggestions;
+    renderResults(parsed.suggestions, parsed.tips);
+    buildLangBar();
+    document.getElementById('similarBox').style.display = 'block';
+  } catch(err) {
+    document.getElementById('resultsGrid').innerHTML =
+      `<div style="color:#D94F82;font-weight:700;padding:20px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:10px;">😓</div>
+        <div style="font-size:18px;margin-bottom:10px;">오류가 발생했어요</div>
+        <div style="color:var(--text3);font-size:13px;margin-bottom:20px;">${err.message}</div>
+        <button onclick="generate()" style="padding:10px 20px;background:var(--primary);color:white;border:none;border-radius:20px;cursor:pointer;font-weight:700;">
+          다시 시도하기
+        </button>
+      </div>`;
+  }
+
+  document.getElementById('loadingOverlay').style.display = 'none';
+  btn.disabled = false;
+  btn.innerHTML = '✦ AI 단어·문구 추천 받기';
+}
+
+/* 결과 렌더 */
+function renderResults(suggestions, tips) {
+  const grid = document.getElementById('resultsGrid');
+  grid.innerHTML = '';
+  suggestions.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.style.animationDelay = Math.min(i * 0.04, 0.6) + 's';
+    card.dataset.text = s.text;
+    card.dataset.korean = s.korean || '';
+    
+    const words = s.text.split(/\s+/);
+    let textHTML;
+    if (words.length > 1) {
+      // 문구: 큰 글씨 + 작은 글씨(단어별 + 별)
+      const wordSpans = words.map((w, idx) => {
+        const isWordFavorited = favoriteWords.some(f => f.text === w);
+        // words 배열에서 해당 단어의 한글 뜻 찾기
+        const wordKorean = (s.words && s.words[idx]) ? s.words[idx].korean : '';
+        return `
+        <span class="word-with-star">
+          <span class="result-word" title="단어 선택" onclick="selectItem('${w.replace(/'/g,"\\'")}',event)">${w}</span>
+          <span class="word-mini-star ${isWordFavorited ? 'active' : ''}" onclick="toggleFavoriteWord(event,'${w.replace(/'/g,"\\'")}','${wordKorean}')" title="단어만 즐겨찾기">⭐</span>
+        </span>`;
+      }).join(' ');
+      textHTML = `
+        <div class="result-text-phrase" title="문구 전체 선택" onclick="selectItem('${s.text.replace(/'/g,"\\'")}',event)">${s.text}</div>
+        <div class="result-text-small">${wordSpans}</div>`;
+    } else {
+      textHTML = `<div class="result-text result-word-single" onclick="selectItem('${s.text.replace(/'/g,"\\'")}',event)">${s.text}</div>`;
+    }
+    
+    // 카드 우상단 별 아이콘 (전체 즐겨찾기)
+    const isFavorited = words.length > 1 
+      ? favoritePhrases.some(f => f.text === s.text)
+      : favoriteWords.some(f => f.text === s.text);
+    
+    let html = `<div class="favorite-icon ${isFavorited ? 'active' : ''}" onclick="toggleFavorite(event, '${s.text.replace(/'/g,"\\'")}', '${s.korean || ''}', ${words.length > 1})" title="즐겨찾기">⭐</div>${textHTML}`;
+    if (s.romanization) html += `<div class="result-sub">${s.romanization}</div>`;
+    if (s.korean) html += `<div class="result-kr">${s.korean}</div>`;
+    
+    card.innerHTML = html;
+    grid.appendChild(card);
+  });
+  
+  if (tips && tips.length) {
+    const analysisText = document.getElementById('analysisText');
+    analysisText.innerHTML = tips.map(t => `<div>${t}</div>`).join('');
+    document.getElementById('analysisCard').style.display = 'block';
+  }
+}
+
+/* 언어 전환 */
+async function switchLang(newLang) {
+  if (!lastPromptData) return;
+  currentLang = newLang;
+  document.querySelectorAll('.lsw-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === newLang));
+  document.getElementById('loadingOverlay').style.display = 'block';
+  document.getElementById('loadingText').textContent = `${langKrName[newLang]}로 변환 중...`;
+  document.getElementById('resultsGrid').innerHTML = '';
+  document.getElementById('analysisCard').style.display = 'none';
+  try {
+    const parsed = await callAPI(newLang);
+    currentResults = parsed.suggestions;
+    renderResults(parsed.suggestions, parsed.tips);
+  } catch(err) {
+    document.getElementById('resultsGrid').innerHTML = `<div style="color:#D94F82;padding:20px;">오류 😓</div>`;
+  }
+  document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+function buildLangBar() {
+  const bar = document.getElementById('langSwitchBar');
+  bar.innerHTML = '<span>언어 변경:</span>';
+  const primary = ['ko','en','fr','ja','zh'];
+  const extra = Array.from(document.querySelectorAll('.lang-btn[data-lang]'))
+    .map(b => b.dataset.lang).filter(c => !primary.includes(c));
+  [...primary, ...extra].forEach(code => {
+    const btn = document.createElement('button');
+    btn.className = 'lsw-btn' + (code === currentLang ? ' active' : '');
+    btn.dataset.lang = code;
+    btn.textContent = langNames[code] || code;
+    btn.onclick = () => switchLang(code);
+    bar.appendChild(btn);
+  });
+}
+
+/* 즐겨찾기 */
+function toggleFavorite(event, text, korean, isPhrase) {
+  event.stopPropagation();
+  const icon = event.target;
+  
+  if (isPhrase) {
+    const idx = favoritePhrases.findIndex(f => f.text === text);
+    if (idx > -1) {
+      favoritePhrases.splice(idx, 1);
+      icon.classList.remove('active');
+      showToast('💔 즐겨찾기 해제했어요');
+    } else {
+      favoritePhrases.push({ text, korean });
+      icon.classList.add('active');
+      showToast('⭐ 문구를 즐겨찾기했어요!');
+    }
+  } else {
+    const idx = favoriteWords.findIndex(f => f.text === text);
+    if (idx > -1) {
+      favoriteWords.splice(idx, 1);
+      icon.classList.remove('active');
+      showToast('💔 즐겨찾기 해제했어요');
+    } else {
+      favoriteWords.push({ text, korean });
+      icon.classList.add('active');
+      showToast('⭐ 단어를 즐겨찾기했어요!');
+    }
+  }
+  saveFavorites();
+  updateFavoritesList();
+}
+
+function toggleFavoriteWord(event, word, korean) {
+  event.stopPropagation();
+  const icon = event.target;
+  const idx = favoriteWords.findIndex(f => f.text === word);
+  
+  if (idx > -1) {
+    favoriteWords.splice(idx, 1);
+    icon.classList.remove('active');
+    showToast('💔 즐겨찾기 해제했어요');
+  } else {
+    favoriteWords.push({ text: word, korean });
+    icon.classList.add('active');
+    showToast('⭐ 단어를 즐겨찾기했어요!');
+  }
+  saveFavorites();
+  updateFavoritesList();
+}
+
+async function saveFavorites() {
+  try {
+    await window.storage.set(FAVORITE_KEY, JSON.stringify({
+      words: favoriteWords,
+      phrases: favoritePhrases
+    }), false);
+  } catch(e) {}
+}
+
+async function loadFavorites() {
+  try {
+    const result = await window.storage.get(FAVORITE_KEY, false);
+    if (result && result.value) {
+      const data = JSON.parse(result.value);
+      favoriteWords = data.words || [];
+      favoritePhrases = data.phrases || [];
+      updateFavoritesList();
+    }
+  } catch(e) {}
+}
+
+function updateFavoritesList() {
+  const wordsList = document.getElementById('favoriteWordsList');
+  const phrasesList = document.getElementById('favoritePhrasesList');
+  
+  if (wordsList) {
+    wordsList.innerHTML = favoriteWords.length === 0
+      ? '<p style="color:var(--text3);font-size:13px;">아직 즐겨찾기한 단어가 없어요</p>'
+      : favoriteWords.map(f => `
+          <div class="favorite-item">
+            <div class="favorite-item-text">${f.text}</div>
+            ${f.korean ? `<div class="favorite-item-kr">${f.korean}</div>` : ''}
+            <button class="favorite-remove" onclick="removeFavorite('word','${f.text.replace(/'/g,"\\'")}')">×</button>
+          </div>
+        `).join('');
+  }
+  
+  if (phrasesList) {
+    phrasesList.innerHTML = favoritePhrases.length === 0
+      ? '<p style="color:var(--text3);font-size:13px;">아직 즐겨찾기한 문구가 없어요</p>'
+      : favoritePhrases.map(f => `
+          <div class="favorite-item">
+            <div class="favorite-item-text">${f.text}</div>
+            ${f.korean ? `<div class="favorite-item-kr">${f.korean}</div>` : ''}
+            <button class="favorite-remove" onclick="removeFavorite('phrase','${f.text.replace(/'/g,"\\'")}')">×</button>
+          </div>
+        `).join('');
+  }
+  
+  // 결과 카드의 별 아이콘 상태 업데이트
+  updateStarIcons();
+}
+
+function updateStarIcons() {
+  // 큰 별 아이콘 업데이트
+  document.querySelectorAll('.favorite-icon').forEach(icon => {
+    const card = icon.closest('.result-card');
+    const text = card?.dataset.text;
+    const words = text?.split(/\s+/) || [];
+    const isFavorited = words.length > 1
+      ? favoritePhrases.some(f => f.text === text)
+      : favoriteWords.some(f => f.text === text);
+    
+    if (isFavorited) {
+      icon.classList.add('active');
+    } else {
+      icon.classList.remove('active');
+    }
+  });
+  
+  // 작은 별 아이콘 업데이트
+  document.querySelectorAll('.word-mini-star').forEach(star => {
+    const word = star.previousElementSibling?.textContent?.trim();
+    if (word) {
+      const isFavorited = favoriteWords.some(f => f.text === word);
+      if (isFavorited) {
+        star.classList.add('active');
+      } else {
+        star.classList.remove('active');
+      }
+    }
+  });
+}
+
+function removeFavorite(type, text) {
+  if (type === 'word') {
+    favoriteWords = favoriteWords.filter(f => f.text !== text);
+  } else {
+    favoritePhrases = favoritePhrases.filter(f => f.text !== text);
+  }
+  saveFavorites();
+  updateFavoritesList();
+}
+
+/* 복사 */
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const t = document.getElementById('copiedToast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  });
+}
+
+/* 토스트 메시지 */
+function showToast(message) {
+  const toast = document.getElementById('copiedToast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+/* 초기화 */
+loadSharedData();
+loadFavorites();
+</script>
+</body>
+</html>
