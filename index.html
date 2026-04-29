@@ -708,179 +708,12 @@
   @keyframes bounce { 0%,80%,100%{transform:scale(0.7);opacity:0.5;} 40%{transform:scale(1);opacity:1;} }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* 로그인 화면 */
-  .login-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-  }
-  .login-screen.hidden {
-    display: none;
-  }
-  .login-box {
-    background: white;
-    border-radius: 24px;
-    padding: 48px;
-    max-width: 480px;
-    width: 90%;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    text-align: center;
-  }
-  .login-logo {
-    width: 64px;
-    height: 64px;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 32px;
-    margin: 0 auto 20px;
-  }
-  .login-title {
-    font-family: 'Quicksand', sans-serif;
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 12px;
-  }
-  .login-desc {
-    font-size: 15px;
-    color: var(--text2);
-    margin-bottom: 32px;
-    line-height: 1.6;
-  }
-  .login-input-group {
-    margin-bottom: 24px;
-  }
-  .login-input-label {
-    display: block;
-    text-align: left;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 8px;
-  }
-  .login-input {
-    width: 100%;
-    padding: 14px 16px;
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    font-size: 14px;
-    font-family: 'Nunito', sans-serif;
-    transition: all 0.2s;
-  }
-  .login-input:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(108,99,255,0.1);
-  }
-  .login-btn {
-    width: 100%;
-    padding: 14px 24px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-    color: white;
-    border: none;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: 'Nunito', sans-serif;
-    box-shadow: 0 4px 16px rgba(108,99,255,0.25);
-    transition: all 0.2s;
-  }
-  .login-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(108,99,255,0.35);
-  }
-  .login-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
-  .login-guide {
-    margin-top: 24px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
-    text-align: left;
-  }
-  .login-guide-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text2);
-    margin-bottom: 8px;
-  }
-  .login-guide-steps {
-    font-size: 12px;
-    color: var(--text3);
-    line-height: 1.8;
-  }
-  .login-error {
-    color: #d9534f;
-    font-size: 13px;
-    margin-top: 12px;
-    display: none;
-  }
-  .login-error.show {
-    display: block;
-  }
   .app-container {
-    display: none;
-  }
-  .app-container.active {
     display: block;
   }
 </style>
 </head>
 <body>
-
-<!-- 로그인 화면 -->
-<div class="login-screen hidden" id="loginScreen">
-  <div class="login-box">
-    <div class="login-logo">✦</div>
-    <h1 class="login-title">PixelPhrase</h1>
-    <p class="login-desc">
-      AI 기반 단어·문구 생성기<br>
-      17개 언어 지원 | 이미지 분석 | 맞춤형 추천
-    </p>
-    
-    <div class="login-input-group">
-      <label class="login-input-label">Anthropic API 키</label>
-      <input 
-        type="password" 
-        id="apiKeyInput" 
-        class="login-input" 
-        placeholder="sk-ant-api..."
-        autocomplete="off"
-      >
-    </div>
-    
-    <button class="login-btn" id="loginBtn" onclick="verifyAndLogin()">
-      시작하기
-    </button>
-    
-    <div class="login-error" id="loginError"></div>
-    
-    <div class="login-guide">
-      <div class="login-guide-title">🔑 API 키 발급 방법</div>
-      <div class="login-guide-steps">
-        1. <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);text-decoration:none;">console.anthropic.com</a> 접속<br>
-        2. 회원가입 또는 로그인<br>
-        3. 'API Keys' 메뉴 클릭<br>
-        4. '+ Create Key' 버튼 클릭<br>
-        5. 생성된 키 복사하여 위에 입력
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- 메인 앱 -->
 <div class="app-container active" id="appContainer">
@@ -1684,18 +1517,10 @@ async function requestSimilarWords() {
 JSON만 응답: {"groups":[{"source":"원래단어","results":[{"text":"추천단어","korean":"한글뜻"}]}]}
 korean: ${currentLang==='ko' ? '한국어이면 빈문자열' : '반드시 한글로 번역'}`;
     
-    const apiKey = localStorage.getItem('pixelphrase_api_key');
-    if (!apiKey) {
-      throw new Error('API 키가 없습니다');
-    }
-    
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    // 백엔드 API 호출
+    const res = await fetch('/api/chat', {
       method:'POST',
-      headers:{ 
-        'Content-Type':'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-      },
+      headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:800, messages:[{ role:'user', content:prompt }] })
     });
     const data = await res.json();
@@ -1750,18 +1575,10 @@ async function requestSimilarPhrases() {
 JSON만 응답: {"groups":[{"source":"원래단어","results":[{"text":"추천문구","korean":"한글뜻"}]}]}
 korean: ${currentLang==='ko' ? '한국어이면 빈문자열' : '반드시 한글로 번역'}`;
     
-    const apiKey = localStorage.getItem('pixelphrase_api_key');
-    if (!apiKey) {
-      throw new Error('API 키가 없습니다');
-    }
-    
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    // 백엔드 API 호출
+    const res = await fetch('/api/chat', {
       method:'POST',
-      headers:{ 
-        'Content-Type':'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-      },
+      headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:900, messages:[{ role:'user', content:prompt }] })
     });
     const data = await res.json();
@@ -1934,18 +1751,10 @@ async function callAPI(langCode) {
   const reqCount = parseInt(lastPromptData?.count || 10);
   const maxTok = reqCount <= 10 ? 2000 : reqCount <= 20 ? 3000 : reqCount <= 30 ? 4000 : reqCount <= 40 ? 5000 : 6000;
 
-  const apiKey = localStorage.getItem('pixelphrase_api_key');
-  if (!apiKey) {
-    throw new Error('API 키가 없습니다. 다시 로그인해주세요.');
-  }
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  // 백엔드 API 호출 (API 키는 서버에 있음!)
+  const res = await fetch('/api/chat', {
     method:'POST',
-    headers:{ 
-      'Content-Type':'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01'
-    },
+    headers:{ 'Content-Type':'application/json' },
     body: JSON.stringify({ 
       model:'claude-sonnet-4-20250514', 
       max_tokens: maxTok,
@@ -2273,65 +2082,6 @@ function showToast(message) {
 /* 초기화 */
 loadSharedData();
 loadFavorites();
-
-/* API 키 관리 */
-const API_KEY_STORAGE = 'pixelphrase_api_key';
-
-// 페이지 로드 시 API 키 확인
-function checkApiKey() {
-  let apiKey = localStorage.getItem(API_KEY_STORAGE);
-  
-  // 저장된 키가 있으면 자동 로그인
-  if (apiKey) {
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('appContainer').classList.add('active');
-  } else {
-    // 저장된 키가 없으면 로그인 화면 표시
-    document.getElementById('loginScreen').classList.remove('hidden');
-    document.getElementById('appContainer').classList.remove('active');
-  }
-}
-
-// API 키 검증 및 로그인
-async function verifyAndLogin() {
-  const input = document.getElementById('apiKeyInput');
-  const btn = document.getElementById('loginBtn');
-  const error = document.getElementById('loginError');
-  const apiKey = input.value.trim();
-  
-  if (!apiKey) {
-    error.textContent = '⚠️ API 키를 입력해주세요';
-    error.classList.add('show');
-    return;
-  }
-  
-  if (!apiKey.startsWith('sk-ant-')) {
-    error.textContent = '⚠️ 유효하지 않은 API 키 형식입니다';
-    error.classList.add('show');
-    return;
-  }
-  
-  // 검증 없이 바로 저장!
-  localStorage.setItem(API_KEY_STORAGE, apiKey);
-  document.getElementById('loginScreen').classList.add('hidden');
-  document.getElementById('appContainer').classList.add('active');
-  input.value = '';
-}
-
-
-// Enter 키로 로그인
-document.addEventListener('DOMContentLoaded', () => {
-  checkApiKey();
-  
-  const input = document.getElementById('apiKeyInput');
-  if (input) {
-    input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        verifyAndLogin();
-      }
-    });
-  }
-});
 </script>
 
 </div><!-- app-container 닫기 -->
