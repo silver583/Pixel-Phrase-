@@ -838,22 +838,6 @@
   .app-container.active {
     display: block;
   }
-  .logout-btn {
-    padding: 6px 14px;
-    border-radius: 20px;
-    background: var(--surface2);
-    color: var(--text2);
-    border: 1px solid var(--border);
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'Nunito', sans-serif;
-    transition: all 0.2s;
-  }
-  .logout-btn:hover {
-    background: var(--border);
-    color: var(--text);
-  }
 </style>
 </head>
 <body>
@@ -908,7 +892,6 @@
   </div>
   <div style="display:flex;gap:12px;align-items:center;">
     <div class="header-tag">AI Word & Phrase Generator</div>
-    <button class="logout-btn" onclick="logout()">로그아웃</button>
     <button class="my-btn" onclick="toggleMyPanel()">⭐ 즐겨찾기</button>
   </div>
 </header>
@@ -2293,17 +2276,21 @@ loadFavorites();
 
 /* API 키 관리 */
 const API_KEY_STORAGE = 'pixelphrase_api_key';
+const DEFAULT_API_KEY = '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';
 
 // 페이지 로드 시 API 키 확인
 function checkApiKey() {
-  const apiKey = localStorage.getItem(API_KEY_STORAGE);
-  if (apiKey) {
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('appContainer').classList.add('active');
-  } else {
-    document.getElementById('loginScreen').classList.remove('hidden');
-    document.getElementById('appContainer').classList.remove('active');
+  let apiKey = localStorage.getItem(API_KEY_STORAGE);
+  
+  // 저장된 키가 없으면 기본 키 사용 (자동 저장)
+  if (!apiKey) {
+    apiKey = DEFAULT_API_KEY;
+    localStorage.setItem(API_KEY_STORAGE, apiKey);
   }
+  
+  // 항상 로그인된 상태로 진입
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appContainer').classList.add('active');
 }
 
 // API 키 검증 및 로그인
@@ -2367,14 +2354,6 @@ async function verifyAndLogin() {
   btn.textContent = '시작하기';
 }
 
-// 로그아웃
-function logout() {
-  if (confirm('로그아웃하시겠습니까?')) {
-    localStorage.removeItem(API_KEY_STORAGE);
-    document.getElementById('loginScreen').classList.remove('hidden');
-    document.getElementById('appContainer').classList.remove('active');
-  }
-}
 
 // Enter 키로 로그인
 document.addEventListener('DOMContentLoaded', () => {
