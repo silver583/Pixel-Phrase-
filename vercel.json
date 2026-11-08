@@ -1,0 +1,36 @@
+{
+  "redirects": [
+    {
+      "source": "/((?!api/).*)",
+      "missing": [
+        {
+          "type": "query",
+          "key": "oh_old"
+        },
+        {
+          "type": "cookie",
+          "key": "oh_old"
+        }
+      ],
+      "destination": "https://pixel-phrase.apps.ohlab.ai/",
+      "permanent": false
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "query",
+          "key": "oh_old"
+        }
+      ],
+      "headers": [
+        {
+          "key": "Set-Cookie",
+          "value": "oh_old=1; Path=/; Max-Age=1209600; Secure; SameSite=Lax"
+        }
+      ]
+    }
+  ]
+}
